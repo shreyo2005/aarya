@@ -407,6 +407,43 @@ a { color: var(--link); text-underline-offset: 3px; }
 
 .install .hint { margin: 0.5rem 0 0; }
 
+
+/* Install pop-up: bottom sheet, home screen only */
+
+.install-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--paper);
+  border-top: 4px solid var(--header);
+}
+
+.install-banner-inner {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 0.5rem 0.75rem;
+  align-items: start;
+}
+
+.install-icon { display: block; width: 48px; height: 48px; }
+
+.install-title { font-weight: 700; margin: 0; }
+
+.install-note { margin: 0.125rem 0 0; font-size: 1rem; color: var(--muted); }
+
+.install-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
+
+.install-actions .button { text-align: center; margin: 0; }
+
+body.has-install-banner { padding-bottom: 12rem; }
+
+
+
 .noscript { max-width: 40rem; margin: 1rem auto; padding: 0 1rem; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {

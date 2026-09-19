@@ -155,9 +155,13 @@ function show(id, { remember = true } = {}) {
     screen.hidden = screen.id !== id;
   });
   renderScreen(id);
+  updateInstallUi();
   window.scrollTo(0, 0);
   const heading = target.querySelector('h1, h2');
   if (heading) heading.focus();
+
+   
+
 }
 
 function renderScreen(id) {
@@ -624,9 +628,19 @@ function renderHelplines() {
 // ---------- Installable app ----------
 
 let installPrompt = null;
+let installDismissed = false; // for this visit only; nothing is saved
 
 function isInstalledApp() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+// The pop-up shows only on the home screen, never in the middle of getting help.
+function updateInstallUi() {
+  const available = Boolean(installPrompt);
+  $('#install').hidden = !available;
+  const showBanner = available && !installDismissed && currentScreenId() === 'home';
+  $('#install-banner').hidden = !showBanner;
+  document.body.classList.toggle('has-install-banner', showBanner);
 }
 
 function setupInstall() {
@@ -634,15 +648,15 @@ function setupInstall() {
   if (isInstalledApp() && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-  // Show our own Install button only when the browser says installing is possible.
+  // Chrome fires this once installing is possible (after a tap and about 30 seconds).
   window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
+    event.preventDefault(); // use our own pop-up, which carries the privacy warning
     installPrompt = event;
-    $('#install').hidden = false;
+    updateInstallUi();
   });
   window.addEventListener('appinstalled', () => {
     installPrompt = null;
-    $('#install').hidden = true;
+    updateInstallUi();
   });
 }
 
@@ -650,12 +664,17 @@ async function installApp() {
   if (!installPrompt) return;
   const prompt = installPrompt;
   installPrompt = null;
-  $('#install').hidden = true;
+  updateInstallUi();
   try {
     await prompt.prompt();
   } catch {
     // the browser refused or the user closed it; nothing else to do
   }
+}
+
+function installLater() {
+  installDismissed = true;
+  updateInstallUi();
 }
 
 // ---------- Actions ----------
@@ -714,6 +733,7 @@ const actions = {
   gps: handleGps,
   'live-search': liveSearch,
   install: installApp,
+  'install-later': installLater,
 };
 
 async function init() {
