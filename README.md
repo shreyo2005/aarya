@@ -1,12 +1,8 @@
-https://main.d1fxtl99crgtan.amplifyapp.com
-
-
-
 # Aarya
 
 **A private, lightweight guide to urgent sexual health care and rights, for sex workers and survivors of sexual violence in Bengaluru.**
 
-**Live:** https://main.XXXXXXXX.amplifyapp.com  _(replace with your Amplify link)_
+Live:https://main.d1fxtl99crgtan.amplifyapp.com
 
 Built solo for **First Commit**, the first event of the WeMakeDevs × AWS **Bharat Builds Tour** (17–20 September 2026).
 
