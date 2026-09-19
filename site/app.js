@@ -621,7 +621,6 @@ function renderHelplines() {
   });
 }
 
-
 // ---------- Installable app ----------
 
 let installPrompt = null;
@@ -658,7 +657,6 @@ async function installApp() {
     // the browser refused or the user closed it; nothing else to do
   }
 }
-
 
 // ---------- Actions ----------
 
@@ -715,7 +713,7 @@ const actions = {
   'clear-notes': clearNotes,
   gps: handleGps,
   'live-search': liveSearch,
-    install: installApp,
+  install: installApp,
 };
 
 async function init() {
@@ -732,7 +730,7 @@ async function init() {
   });
   $('#pin-form').addEventListener('submit', handlePincode);
   $('#check-form').addEventListener('submit', handleCheckSubmit);
-    setupInstall();
+  setupInstall();
 
   try {
     base = await loadContent('en');

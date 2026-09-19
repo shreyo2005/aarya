@@ -97,7 +97,6 @@ h1:focus, h2:focus { outline: none; background: none; box-shadow: none; }
 
 main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
 
-
 .hero {
   margin: -1.5rem -1rem 1.5rem;
   padding: 2.5rem 1rem 2rem;
@@ -106,6 +105,7 @@ main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
 }
 
 .hero .headline { margin: 0; }
+
 .headline {
   font-size: 2.5rem;
   line-height: 1.1;
