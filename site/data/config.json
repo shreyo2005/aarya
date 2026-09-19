@@ -1,0 +1,4 @@
+{
+  "_note": "Paste the Lambda function URL here after deploying it. Leave empty to switch the map search off.",
+  "liveSearchUrl": ""
+}

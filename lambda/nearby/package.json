@@ -1,0 +1,10 @@
+{
+  "name": "aarya-nearby",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Searches Amazon Location Service for hospitals near an approximate point. Stores and logs nothing about the request.",
+  "dependencies": {
+    "@aws-sdk/client-geo-places": "^3.700.0"
+  }
+}

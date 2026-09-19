@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://*.lambda-url.ap-south-1.on.aws; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#1f2a44">
+  <title>Aarya</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="brand">Aarya</span>
+      <div class="topbar-actions">
+        <button type="button" class="lang" id="lang-button" data-action="lang" data-t="langSwitch" lang="hi">हिंदी</button>
+        <button type="button" class="leave" data-action="leave" data-t="leave">Leave this page</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="helper-banner" id="helper-banner" hidden>
+    <p data-t="helperOn">You're helping someone. Go through these questions together, and let her decide.</p>
+    <button type="button" class="link-button" data-action="helper-off" data-t="helperOff">Stop helping mode</button>
+  </div>
+
+  <main>
+    <p id="fatal" class="error" role="alert" hidden>Something went wrong on this page. If you are in danger, call 112.</p>
+
+    <section class="screen" id="home">
+      <h1 class="headline" tabindex="-1" data-t="home.title">YOU MATTER</h1>
+
+      <div class="danger-box">
+        <p class="danger-title" data-t="danger.title">If you are in danger now</p>
+        <a class="button button--danger" href="tel:112" data-t="danger.call">Call 112</a>
+      </div>
+
+      <div class="stack">
+        <button type="button" class="button button--primary" data-action="go-check" data-t="home.help">Get help now</button>
+        <button type="button" class="button" data-action="go-checkup" data-t="home.checkup">Regular check-up or test</button>
+        <button type="button" class="button" data-action="go-rights" data-t="home.rights">Know your rights</button>
+      </div>
+
+      <p class="inset" data-t="home.privacy">This site does not ask for your name. Nothing you type or choose is saved.</p>
+
+      <button type="button" class="link-button" data-action="helper-on" data-t="home.helper">I'm helping someone</button>
+    </section>
+
+    <section class="screen" id="check" hidden>
+      <h2 tabindex="-1" data-t="check.title">Tell us what happened</h2>
+      <p class="lede" data-t="check.sub">Choose everything that is true. You can skip anything.</p>
+
+      <form id="check-form" novalidate>
+        <div id="check-groups"></div>
+
+        <div class="field">
+          <label for="notes" class="field-label" data-t="check.notesLabel">Anything else? (optional)</label>
+          <p class="hint" id="notes-hint" data-t="check.notesHint">It stays on this phone.</p>
+          <textarea id="notes" name="notes" rows="5" maxlength="1000" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-describedby="notes-hint"></textarea>
+        </div>
+
+        <p id="check-error" class="error" role="alert" hidden></p>
+        <button type="submit" class="button button--primary" data-t="check.submit">Show me what to do</button>
+      </form>
+
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="advice" hidden>
+      <h2 tabindex="-1" data-t="advice.title">What to do now</h2>
+      <p class="lede" data-t="advice.sub">Start at the top. The most urgent things come first.</p>
+
+      <ol id="advice-list" class="advice"></ol>
+
+      <div id="notes-box" class="notes-box" hidden>
+        <h3 data-t="advice.notesTitle">Show this to the doctor</h3>
+        <p class="hint" data-t="advice.notesHint">This is what you wrote. It is not saved.</p>
+        <p id="notes-show" class="notes-text"></p>
+        <button type="button" class="link-button" data-action="clear-notes" data-t="advice.clearNotes">Delete what I wrote</button>
+      </div>
+
+      <div class="stack">
+        <button type="button" class="button" data-action="go-rights" data-t="home.rights">Know your rights</button>
+      </div>
+      <button type="button" class="link-button" data-action="back" data-t="advice.edit">Change my answers</button>
+
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="area" hidden>
+      <h2 tabindex="-1" data-t="area.title">Where are you?</h2>
+      <p class="lede" data-t="area.sub">Your location stays on this phone.</p>
+      <form id="pin-form" class="pin-form" novalidate>
+        <label for="pincode" data-t="area.pinLabel">Pincode</label>
+        <input id="pincode" name="pincode" type="text" inputmode="numeric" maxlength="6" autocomplete="off" data-t-placeholder="area.pinPlaceholder" placeholder="560002">
+        <button type="submit" class="button button--primary" data-t="area.pinGo">Show places near this pincode</button>
+      </form>
+      <p class="or" data-t="area.or">or</p>
+      <button type="button" class="button" id="gps-button" data-action="gps" data-t="area.gps">Use my location</button>
+      <p id="area-status" class="status" role="status" aria-live="polite"></p>
+      <p id="area-error" class="error" role="alert" hidden></p>
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="results" hidden>
+      <h2 id="results-title" tabindex="-1"></h2>
+      <div class="inset">
+        <p class="say-label" data-t="results.sayLabel">At the desk you can say:</p>
+        <p id="results-say" class="say-text"></p>
+      </div>
+      <p id="results-note" class="inset" hidden></p>
+      <ol id="results-list" class="places"></ol>
+      <div id="results-empty" class="danger-box" hidden>
+        <p class="danger-title" data-t="results.none">No places in our list offer this nearby yet.</p>
+        <a class="button button--danger" href="tel:112" data-t="danger.call">Call 112</a>
+      </div>
+
+      <div id="live" class="live" hidden>
+        <h3 data-t="live.title">Need a place closer to you?</h3>
+        <p data-t="live.explain">We can search a map for hospitals near you.</p>
+        <button type="button" class="button" id="live-button" data-action="live-search" data-t="live.button">Search the map for hospitals</button>
+        <p id="live-status" class="status" role="status" aria-live="polite"></p>
+        <div id="live-results" hidden>
+          <p class="inset" data-t="live.warning">We have not checked these places. Call before you go.</p>
+          <p id="live-none" data-t="live.none" hidden>The map search found no hospitals within 15 km.</p>
+          <ol id="live-list" class="places"></ol>
+        </div>
+      </div>
+
+      <p class="fineprint" data-t="results.straight">Distances are in a straight line.</p>
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="rights" hidden>
+      <h2 tabindex="-1" data-t="rights.title">Your rights</h2>
+      <p class="lede" data-t="rights.sub">These rights are yours.</p>
+      <ul id="rights-list" class="rights"></ul>
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <h2 class="footer-title" data-t="helplines.title">Helplines</h2>
+      <ul id="helplines" class="helplines"></ul>
+    </div>
+  </footer>
+
+  <noscript><p class="noscript">This site needs JavaScript. If you are in danger, call 112.</p></noscript>
+</body>
+</html>

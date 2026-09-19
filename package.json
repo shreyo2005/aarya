@@ -1,0 +1,18 @@
+{
+  "name": "aarya",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Aarya: private, lightweight guide to urgent sexual health care and rights",
+  "scripts": {
+    "facilities": "node scripts/build-facilities.js data/facilities.csv site/data/facilities.json",
+    "pincodes": "node scripts/build-pincodes.js",
+    "db:load": "node scripts/load-dynamodb.js data/facilities.csv",
+    "db:export": "node scripts/export-dynamodb.js site/data/facilities.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
+    "csv-parse": "^5.5.6"
+  }
+}
