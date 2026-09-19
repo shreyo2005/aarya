@@ -72,6 +72,8 @@
     "advice.notesHint": "This is what you wrote. It is not saved.",
     "advice.clearNotes": "Delete what I wrote",
     "advice.edit": "Change my answers",
+        "install.button": "Install Aarya as an app",
+    "install.note": "An Aarya icon will appear on this phone. Anyone who uses the phone can see it.",
     "helper": {"area.title": "Where are you both?", "area.sub": "The location stays on this phone. It is only sent, as an approximate area, if you choose to search the map.", "results.sayLabel": "At the desk, she can say:", "rights.sub": "These rights are hers. Share them with her.", "check.title": "Tell us what happened to her", "check.sub": "Go through this with her and let her choose. Nothing here is saved or sent anywhere.", "advice.notesTitle": "She can show this to the doctor"}
   },
   "check": {"groups": [

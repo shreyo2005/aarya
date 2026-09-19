@@ -97,6 +97,15 @@ h1:focus, h2:focus { outline: none; background: none; box-shadow: none; }
 
 main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
 
+
+.hero {
+  margin: -1.5rem -1rem 1.5rem;
+  padding: 2.5rem 1rem 2rem;
+  background: #edf2f8 url("hero.svg") right bottom / auto 100% no-repeat;
+  border-bottom: 1px solid var(--line);
+}
+
+.hero .headline { margin: 0; }
 .headline {
   font-size: 2.5rem;
   line-height: 1.1;
@@ -393,6 +402,10 @@ a { color: var(--link); text-underline-offset: 3px; }
 .helplines { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
 
 .helplines a { font-weight: 700; }
+
+.install { margin-top: 1.25rem; }
+
+.install .hint { margin: 0.5rem 0 0; }
 
 .noscript { max-width: 40rem; margin: 1rem auto; padding: 0 1rem; font-weight: 700; }
 

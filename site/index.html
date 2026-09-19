@@ -8,6 +8,8 @@
   <meta name="theme-color" content="#1f2a44">
   <title>Aarya</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
@@ -31,7 +33,9 @@
     <p id="fatal" class="error" role="alert" hidden>Something went wrong on this page. If you are in danger, call 112.</p>
 
     <section class="screen" id="home">
-      <h1 class="headline" tabindex="-1" data-t="home.title">YOU MATTER</h1>
+      <div class="hero">
+        <h1 class="headline" tabindex="-1" data-t="home.title">YOU MATTER</h1>
+      </div>
 
       <div class="danger-box">
         <p class="danger-title" data-t="danger.title">If you are in danger now</p>
@@ -161,6 +165,10 @@
     <div class="footer-inner">
       <h2 class="footer-title" data-t="helplines.title">Helplines</h2>
       <ul id="helplines" class="helplines"></ul>
+      <div id="install" class="install" hidden>
+        <button type="button" class="button" data-action="install" data-t="install.button">Install Aarya as an app</button>
+        <p class="hint" data-t="install.note">An Aarya icon will appear on this phone. Anyone who uses the phone can see it.</p>
+      </div>
     </div>
   </footer>
 

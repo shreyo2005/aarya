@@ -621,6 +621,45 @@ function renderHelplines() {
   });
 }
 
+
+// ---------- Installable app ----------
+
+let installPrompt = null;
+
+function isInstalledApp() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function setupInstall() {
+  // Offline copy only for the installed app, so a normal visit leaves nothing saved on the phone.
+  if (isInstalledApp() && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  // Show our own Install button only when the browser says installing is possible.
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    $('#install').hidden = false;
+  });
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    $('#install').hidden = true;
+  });
+}
+
+async function installApp() {
+  if (!installPrompt) return;
+  const prompt = installPrompt;
+  installPrompt = null;
+  $('#install').hidden = true;
+  try {
+    await prompt.prompt();
+  } catch {
+    // the browser refused or the user closed it; nothing else to do
+  }
+}
+
+
 // ---------- Actions ----------
 
 function quickExit() {
@@ -676,6 +715,7 @@ const actions = {
   'clear-notes': clearNotes,
   gps: handleGps,
   'live-search': liveSearch,
+    install: installApp,
 };
 
 async function init() {
@@ -692,6 +732,7 @@ async function init() {
   });
   $('#pin-form').addEventListener('submit', handlePincode);
   $('#check-form').addEventListener('submit', handleCheckSubmit);
+    setupInstall();
 
   try {
     base = await loadContent('en');
