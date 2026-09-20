@@ -1,3 +1,21 @@
-lambda/nearby.zip
+# Dependencies (recreate with npm install)
+node_modules/
 
+# Build output
 *.zip
+
+# Secrets: never commit these
+.env
+*.env
+.aws/
+credentials*
+*accessKeys*.csv
+*.pem
+
+# Logs
+npm-debug.log*
+
+# Windows and editor files
+Thumbs.db
+desktop.ini
+.vscode/
