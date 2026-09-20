@@ -25,6 +25,7 @@ const state = {
   previous: [],    // in-page back stack (browser history is never touched)
   noteFor: 'doctor', // which note is on screen: 'doctor' or 'helper'
   noteLang: 'en',    // notes are shown in English by default, so any doctor can read them
+  noteFirst: false,  // she chose "Make a note" on the home screen: go from the form straight to the notes
 };
 
 let config = { liveSearchUrl: '' };
@@ -276,7 +277,7 @@ function handleCheckSubmit(event) {
     return;
   }
   error.hidden = true;
-  show('advice');
+  show(state.noteFirst ? 'noteq' : 'advice');
 }
 
 // ---------- Advice ----------
@@ -597,12 +598,24 @@ function renderNote() {
   $('#note-under18').hidden = !ids.has('under18');
 
   // Advice that her new answers call for, if the advice screen did not already show it.
+  // If she came straight here from the home screen, she has not seen the advice yet, so show all of it.
   const shown = new Set(buildAdvice(readAnswers()));
-  const extra = [];
-  if (['choked', 'headHit', 'fainted'].some((id) => ids.has(id)) && !shown.has('emergency')) extra.push('emergency');
-  if (ids.has('whoAuthority')) extra.push('authority');
-  if (['safeKnows', 'safeTonight', 'safePlace'].some((id) => ids.has(id)) && !shown.has('unsafe')) extra.push('unsafe');
-  if (ids.has('drugYes') && !shown.has('drugged')) extra.push('drugged');
+  const added = [];
+  if (['choked', 'headHit', 'fainted'].some((id) => ids.has(id))) added.push('emergency');
+  if (['safeKnows', 'safeTonight', 'safePlace'].some((id) => ids.has(id))) added.push('unsafe');
+  if (ids.has('whoAuthority')) added.push('authority');
+  if (ids.has('drugYes')) added.push('drugged');
+
+  let extra;
+  if (state.noteFirst) {
+    // Urgent cards first, then the usual advice, then the rest.
+    const urgentIds = ['emergency', 'selfharm', 'unsafe'];
+    const all = [...shown, ...added];
+    extra = [...new Set([...urgentIds.filter((id) => all.includes(id)), ...all])];
+  } else {
+    extra = added.filter((id) => !shown.has(id));
+  }
+  $('#note-also-title').textContent = t(state.noteFirst ? 'advice.title' : 'note.alsoTitle');
 
   const list = $('#note-also-list');
   list.replaceChildren();
@@ -1016,6 +1029,7 @@ function restart() {
   $('#check-form').reset(); // clears every answer and what she typed
   clearNotes();
   resetNotes();
+  state.noteFirst = false;
   state.service = null;
   state.origin = null;
   state.live = null;
@@ -1034,7 +1048,8 @@ const actions = {
   'helper-off': () => setHelper(false),
   back,
   restart,
-  'go-check': () => show('check'),
+  'go-check': () => { state.noteFirst = false; show('check'); },
+  'go-note-first': () => { state.noteFirst = true; show('check'); },
   'go-rights': () => show('rights'),
   'go-checkup': () => chooseService('checkup'),
   'clear-notes': clearNotes,

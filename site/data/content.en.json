@@ -79,6 +79,8 @@
     "install.later": "Not now",
     "note.ctaTitle": "Hard to explain what happened?",
     "note.ctaBody": "Answer a few more questions and we will turn them into two short notes: one for a doctor, and one for the police or a support worker. You can show the screen instead of saying it out loud.",
+    "home.note": "Make a note to show a doctor or police",
+    "note.buttonTop": "Hard to explain? Make a note to show someone",
     "note.button": "Make a note to show someone",
     "noteq.title": "Make a note to show someone",
     "noteq.sub": "About 2 minutes. Skip anything you don't want to answer. Only what you choose goes into the note. Nothing is saved.",

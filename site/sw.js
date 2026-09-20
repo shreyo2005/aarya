@@ -8,7 +8,7 @@
 // a fresh copy in the background for next time. Requests to other sites, such as
 // the map search, are never touched or saved.
 
-const VERSION = 'aarya-v3'; // change this on every deploy that changes files below
+const VERSION = 'aarya-v4'; // change this on every deploy that changes files below
 const FILES = [
   './',
   'index.html',

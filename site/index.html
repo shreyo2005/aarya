@@ -44,6 +44,7 @@
 
       <div class="stack">
         <button type="button" class="button button--primary" data-action="go-check" data-t="home.help">Get help now</button>
+        <button type="button" class="button" data-action="go-note-first" data-t="home.note">Make a note to show a doctor or police</button>
         <button type="button" class="button" data-action="go-checkup" data-t="home.checkup">Regular check-up or test</button>
         <button type="button" class="button" data-action="go-rights" data-t="home.rights">Know your rights</button>
       </div>
@@ -79,6 +80,7 @@
     <section class="screen" id="advice" hidden>
       <h2 tabindex="-1" data-t="advice.title">What to do now</h2>
       <p class="lede" data-t="advice.sub">Start at the top. The most urgent things come first.</p>
+      <button type="button" class="button note-top" data-action="go-noteq" data-t="note.buttonTop">Hard to explain? Make a note to show someone</button>
 
       <ol id="advice-list" class="advice"></ol>
 
@@ -136,7 +138,7 @@
       <article id="note-sheet" class="note-sheet" lang="en"></article>
 
       <div id="note-also" hidden>
-        <h3 data-t="note.alsoTitle">Also important</h3>
+        <h3 id="note-also-title">Also important</h3>
         <ol id="note-also-list" class="advice"></ol>
       </div>
 

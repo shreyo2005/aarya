@@ -374,6 +374,8 @@ a { color: var(--link); text-underline-offset: 3px; }
 
 /* Invitation to make a note, under the advice list */
 
+.note-top { margin: 0 0 1.5rem; }
+
 .note-cta { margin: 0 0 1.5rem; padding: 1rem; background: var(--panel); border-left: 8px solid var(--primary); }
 
 .note-cta h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
