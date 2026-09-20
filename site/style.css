@@ -436,6 +436,16 @@ a { color: var(--link); text-underline-offset: 3px; }
 
 .note-footer { font-size: 1rem; color: var(--muted); margin: 1.25rem 0 0; padding-top: 0.75rem; border-top: 1px solid var(--line); }
 
+.note-share { margin: 0 0 1.5rem; padding: 1rem; background: var(--panel); border-left: 8px solid var(--header); }
+
+.note-share h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+
+.note-share-buttons { display: grid; gap: 0.75rem; margin: 0 0 0.5rem; }
+
+.note-share-buttons .button { text-align: center; }
+
+.note-share-buttons .button:not(.button--primary) { background: var(--paper); border-color: var(--line); }
+
 .note-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1rem; }
 
 /* Map search block */

@@ -26,6 +26,7 @@ const state = {
   noteFor: 'doctor', // which note is on screen: 'doctor' or 'helper'
   noteLang: 'en',    // notes are shown in English by default, so any doctor can read them
   noteFirst: false,  // she chose "Make a note" on the home screen: go from the form straight to the notes
+  noteText: '',      // the note on screen as plain text, for sharing. Memory only.
 };
 
 let config = { liveSearchUrl: '' };
@@ -592,6 +593,13 @@ function renderNote() {
   sheet.lang = state.noteLang;
   sheet.replaceChildren(...blocks.map(renderNoteBlock));
 
+  // The same note as plain text, for the share buttons.
+  state.noteText = noteAsText(blocks);
+  $('#note-share').hidden = typeof navigator.share !== 'function';
+  // "sms:?&body=" opens the messages app on Android and iPhone with the text filled in and no number, so she picks the contact.
+  $('#note-sms').setAttribute('href', `sms:?&body=${encodeURIComponent(state.noteText)}`);
+  $('#note-share-status').textContent = '';
+
   $('#note-tab-doctor').setAttribute('aria-pressed', String(state.noteFor === 'doctor'));
   $('#note-tab-helper').setAttribute('aria-pressed', String(state.noteFor === 'helper'));
   $('#note-lang').textContent = t(state.noteLang === 'en' ? 'note.toHindi' : 'note.toEnglish');
@@ -624,6 +632,36 @@ function renderNote() {
     if (card) list.append(adviceCard(card));
   });
   $('#note-also').hidden = list.children.length === 0;
+}
+
+function noteAsText(blocks) {
+  return blocks.map((block) => {
+    if (block.kind === 'section' || block.kind === 'urgent') {
+      return [block.title, ...block.items.map((line) => `- ${line}`)].join('\n');
+    }
+    if (block.kind === 'words') return `${block.title}:\n${block.text}`;
+    return block.text;
+  }).join('\n\n');
+}
+
+// Opens the phone's own share menu. She picks the app and the person; Aarya never sees who.
+async function shareNote() {
+  if (typeof navigator.share !== 'function' || !state.noteText) return;
+  try {
+    await navigator.share({ text: state.noteText });
+  } catch {
+    // she closed the share menu, or the browser refused; nothing was sent
+  }
+}
+
+async function copyNote() {
+  const status = $('#note-share-status');
+  try {
+    await navigator.clipboard.writeText(state.noteText);
+    status.textContent = t('note.copied');
+  } catch {
+    status.textContent = t('note.copyFailed');
+  }
 }
 
 function showNoteFor(who) {
@@ -1030,6 +1068,7 @@ function restart() {
   clearNotes();
   resetNotes();
   state.noteFirst = false;
+  state.noteText = '';
   state.service = null;
   state.origin = null;
   state.live = null;
@@ -1058,6 +1097,8 @@ const actions = {
   'note-helper': () => showNoteFor('helper'),
   'note-lang': switchNoteLanguage,
   'note-delete': deleteNoteAnswers,
+  'note-share': shareNote,
+  'note-copy': copyNote,
   gps: handleGps,
   'live-search': liveSearch,
   install: installApp,

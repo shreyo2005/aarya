@@ -137,6 +137,19 @@
 
       <article id="note-sheet" class="note-sheet" lang="en"></article>
 
+      <div class="note-share">
+        <h3 data-t="note.shareTitle">Send this note to someone you trust</h3>
+        <p data-t="note.shareBody">A friend, family member or support worker. You choose who gets it. Aarya never sends anything by itself.</p>
+        <p class="hint" data-t="note.shareWarn">Whoever you send it to can keep it. It will also stay in your messages on this phone, so delete it from the chat if others use this phone.</p>
+        <div class="note-share-buttons">
+          <button type="button" class="button button--primary" id="note-share" data-action="note-share" data-t="note.share" hidden>Share</button>
+          <a class="button" id="note-sms" href="sms:" data-t="note.sms">Send by SMS</a>
+          <button type="button" class="button" data-action="note-copy" data-t="note.copy">Copy the note</button>
+        </div>
+        <p id="note-share-status" class="status" role="status" aria-live="polite"></p>
+        <p class="hint" data-t="note.shareSkip">You don't have to send it. You can also just show this screen.</p>
+      </div>
+
       <div id="note-also" hidden>
         <h3 id="note-also-title">Also important</h3>
         <ol id="note-also-list" class="advice"></ol>
