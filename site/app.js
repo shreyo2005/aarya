@@ -23,6 +23,8 @@ const state = {
   origin: null,    // { lat, lng }
   live: null,      // map search results, once she has asked for them
   previous: [],    // in-page back stack (browser history is never touched)
+  noteFor: 'doctor', // which note is on screen: 'doctor' or 'helper'
+  noteLang: 'en',    // notes are shown in English by default, so any doctor can read them
 };
 
 let config = { liveSearchUrl: '' };
@@ -138,6 +140,7 @@ function applyStaticText() {
   $('#lang-button').lang = state.lang === 'en' ? 'hi' : 'en';
   $('#helper-banner').hidden = !state.helper;
   renderCheckForm();
+  renderNoteForm();
   renderHelplines();
 }
 
@@ -159,9 +162,6 @@ function show(id, { remember = true } = {}) {
   window.scrollTo(0, 0);
   const heading = target.querySelector('h1, h2');
   if (heading) heading.focus();
-
-   
-
 }
 
 function renderScreen(id) {
@@ -170,6 +170,8 @@ function renderScreen(id) {
   if (id === 'rights') renderRights();
   if (id === 'area') clearAreaMessages();
   if (id === 'check') $('#check-error').hidden = true;
+  if (id === 'noteq') evaluateNoteForm();
+  if (id === 'note') renderNote();
 }
 
 // ---------- The form ----------
@@ -335,6 +337,311 @@ function clearNotes() {
 function chooseService(service) {
   state.service = service;
   show(state.origin ? 'results' : 'area');
+}
+
+// ---------- Notes to show a doctor or a helper ----------
+//
+// She answers extra multiple-choice questions. Each ticked answer becomes one
+// fixed sentence written in content.*.json. A skipped question adds nothing,
+// so the notes never say anything she did not choose. Nothing is generated.
+
+// Her answers from the first form, plus 'whenUnanswered' if she skipped "When".
+function mainIds() {
+  const { chosen, when } = readAnswers();
+  const ids = new Set(chosen);
+  ids.add(when || 'whenUnanswered');
+  return ids;
+}
+
+// Builds the extra questions from content, keeping any answers already given.
+function renderNoteForm() {
+  const holder = $('#note-groups');
+  const previous = new Set([...holder.querySelectorAll('input:checked')].map((input) => input.value));
+  holder.replaceChildren();
+
+  const groups = Array.isArray(section('note').groups) ? section('note').groups : [];
+  groups.forEach((group) => {
+    const fieldset = el('fieldset', { className: 'group' });
+    if (Array.isArray(group.showIf)) fieldset.dataset.showIf = group.showIf.join(' ');
+    fieldset.append(el('legend', { text: (state.helper && group.legendHelper) || group.legend }));
+    if (group.hint) fieldset.append(el('p', { className: 'hint', text: group.hint }));
+
+    (group.options || []).forEach((option) => {
+      const id = `q-${group.id}-${option.id}`;
+      const type = group.type === 'radio' ? 'radio' : 'checkbox';
+      const input = el('input', { attrs: { type, id, name: group.id, value: option.id } });
+      input.checked = previous.has(option.id);
+      const label = el('label', { className: 'choice', attrs: { for: id } });
+      if (Array.isArray(option.showIf)) label.dataset.showIf = option.showIf.join(' ');
+      label.append(input, el('span', { text: option.label }));
+      fieldset.append(label);
+    });
+    holder.append(fieldset);
+  });
+  evaluateNoteForm();
+}
+
+// Shows only the questions that apply, and returns every answer that counts:
+// the first form plus the visible ticks here. One pass in page order works
+// because a question only ever depends on answers above it.
+function evaluateNoteForm() {
+  const ids = mainIds();
+  const applies = (node) => !node.dataset.showIf || node.dataset.showIf.split(' ').some((id) => ids.has(id));
+
+  $('#note-groups').querySelectorAll('fieldset').forEach((fieldset) => {
+    const groupApplies = applies(fieldset);
+    let anyVisible = false;
+    fieldset.querySelectorAll('.choice').forEach((label) => {
+      const visible = groupApplies && applies(label);
+      label.hidden = !visible;
+      if (!visible) return;
+      anyVisible = true;
+      const input = label.querySelector('input');
+      if (input.checked) ids.add(input.value);
+    });
+    fieldset.hidden = !anyVisible;
+  });
+  return ids;
+}
+
+function handleNoteSubmit(event) {
+  event.preventDefault();
+  state.noteFor = 'doctor';
+  show('note');
+}
+
+// A sentence in the note's language, with English as the fallback.
+function noteT(key, vars = {}) {
+  const pick = (c) => c && c.note && c.note.text && c.note.text[key];
+  let text = pick(contentCache[state.noteLang]) || pick(base) || '';
+  for (const [name, value] of Object.entries(vars)) text = text.split(`{${name}}`).join(String(value));
+  return text;
+}
+
+// "a", "a and b", "a, b and c"
+function joinList(items, word = 'and') {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} ${noteT(word)} ${items[items.length - 1]}`;
+}
+
+// For each [answer id, sentence key] pair she ticked, the sentence.
+function sentences(ids, pairs) {
+  return pairs.filter(([id]) => ids.has(id)).map(([, key]) => noteT(key));
+}
+
+function timeSentence(ids) {
+  const exact = ['tLess12', 't12to24', 't1to3', 't3to5', 'tMore5'].find((id) => ids.has(id));
+  if (exact) return noteT(exact);
+  if (ids.has('tUnsure')) return noteT('timeUnsure');
+  if (ids.has('recent')) return noteT('recent');
+  if (ids.has('older')) return noteT('older');
+  if (ids.has('unsure')) return noteT('timeUnsure');
+  return '';
+}
+
+function sectionBlock(titleKey, items) {
+  // One item per line. The first letter is capitalised, so list items like "passed urine" read as lines.
+  const lines = items.filter(Boolean).map((text) => text.charAt(0).toUpperCase() + text.slice(1));
+  return lines.length ? { kind: 'section', title: noteT(titleKey), items: lines } : null;
+}
+
+function languageSentence(ids) {
+  const langs = sentences(ids, [['langKannada', 'lKannada'], ['langTamil', 'lTamil'], ['langTelugu', 'lTelugu'], ['langHindi', 'lHindi']]);
+  return langs.length ? noteT('language', { list: joinList(langs, 'or') }) : '';
+}
+
+const INJURY_IDS = ['nBleeding', 'painPrivate', 'painOther', 'bruises', 'choked', 'headHit', 'fainted'];
+
+function buildDoctorNote(ids, notes) {
+  const has = (id) => ids.has(id);
+  const drugged = has('drugged') || has('drugYes');
+
+  const urgent = sentences(ids, [
+    ['bleeding', 'uBleeding'], ['bellypain', 'uBelly'], ['breathing', 'uBreathing'], ['choked', 'uChoked'],
+    ['head', 'uHeadMain'], ['headHit', 'uHeadHit'], ['fainted', 'uFainted'],
+  ]);
+  if (drugged) urgent.push(noteT('uDrugged'));
+
+  const what = [timeSentence(ids)];
+  what.push(...sentences(ids, [['forced', 'sForced'], ['condom', 'sCondomMain']]));
+  const contacts = sentences(ids, [['vaginal', 'cVaginal'], ['anal', 'cAnal'], ['oral', 'cOral']]);
+  if (contacts.length) what.push(noteT('contact', { list: joinList(contacts) }));
+  what.push(...sentences(ids, [['touch', 'touch'], ['contactUnsure', 'contactUnsure']]));
+  const used = sentences(ids, [['penis', 'wPenis'], ['finger', 'wFinger'], ['object', 'wObject']]);
+  if (used.length) what.push(noteT('with', { list: joinList(used) }));
+  what.push(...sentences(ids, [
+    ['withUnsure', 'withUnsure'],
+    ['condomYes', 'condomYes'], ['condomBroke', 'condomBroke'], ['condomNo', 'condomNo'], ['condomUnsure', 'condomUnsure'],
+    ['ejacYes', 'ejacYes'], ['ejacNo', 'ejacNo'], ['ejacUnsure', 'ejacUnsure'],
+    ['people1', 'people1'], ['peopleMany', 'peopleMany'], ['peopleUnsure', 'peopleUnsure'],
+  ]));
+  const since = sentences(ids, [['washed', 'sWashed'], ['changed', 'sChanged'], ['urinated', 'sUrinated'], ['stool', 'sStool'], ['mouth', 'sMouth']]);
+  if (!since.length) what.push(...sentences(ids, [['sinceNone', 'sinceNone']]));
+
+  const body = sentences(ids, [
+    ['hurt', 'hurt'], ['nBleeding', 'nBleeding'], ['painPrivate', 'painPrivate'], ['painOther', 'painOther'],
+    ['bruises', 'bruises'], ['urine', 'urine'], ['discharge', 'discharge'], ['fever', 'fever'],
+    ['pregnant', 'pregnant'], ['drugUnsure', 'drugUnsure'],
+  ]);
+
+  const meds = sentences(ids, [
+    ['periodRecent', 'periodRecent'], ['periodLate', 'periodLate'], ['periodNone', 'periodNone'], ['periodUnsure', 'periodUnsure'],
+    ['bcPill', 'bcPill'], ['bcIud', 'bcIud'], ['bcInjection', 'bcInjection'], ['bcSter', 'bcSter'], ['bcNo', 'bcNo'],
+    ['allergyYes', 'allergyYes'], ['allergyNo', 'allergyNo'], ['allergyUnsure', 'allergyUnsure'],
+  ]);
+
+  // What she needs follows the same rules as the advice screen.
+  const advice = new Set(buildAdvice(readAnswers()));
+  const needs = [
+    [advice.has('pep'), 'needPep'],
+    [advice.has('ec'), 'needEc'],
+    [advice.has('ecLate'), 'needEcLate'],
+    [advice.has('injury') || advice.has('emergency') || INJURY_IDS.some(has), 'needInjury'],
+    [drugged, 'needDrugTest'],
+    [advice.has('sti') || advice.has('pepLate'), 'needSti'],
+    [advice.has('pregnancy'), 'needPregTest'],
+    [advice.has('talk') || has('wantTalk'), 'needCounsellor'],
+  ].filter(([yes]) => yes).map(([, key]) => noteT(key));
+
+  const prefs = sentences(ids, [['prefWomanDoctor', 'prefWomanDoctor'], ['prefCompanion', 'prefCompanion']]);
+  prefs.push(languageSentence(ids), noteT('consent'));
+
+  return [
+    { kind: 'title', text: noteT('doctorTitle') },
+    { kind: 'lead', text: noteT('intro') },
+    has('under18') ? { kind: 'lead', text: noteT('under18') } : null,
+    urgent.length ? { kind: 'urgent', title: noteT('checkFirst'), items: urgent } : null,
+    sectionBlock('secWhat', what),
+    sectionBlock('secSince', since),
+    sectionBlock('secBody', body),
+    sectionBlock('secMeds', meds),
+    sectionBlock('secNeed', needs),
+    sectionBlock('secPrefs', prefs),
+    notes ? { kind: 'words', title: noteT('myWords'), text: notes } : null,
+    { kind: 'footer', text: noteT('footer') },
+  ].filter(Boolean);
+}
+
+// The helper note leaves out body details. She can share those herself if she chooses.
+function buildHelperNote(ids) {
+  const has = (id) => ids.has(id);
+
+  const want = [];
+  const wanted = sentences(ids, [['wantMedical', 'wMedical'], ['wantTalk', 'wTalk'], ['wantPolice', 'wPolice']]);
+  if (wanted.length) want.push(noteT('wantList', { list: joinList(wanted) }));
+  if (has('wantUndecided') && !has('wantPolice')) want.push(noteT('wantUndecided'));
+  if (has('whoAuthority') && has('wantPolice')) want.push(noteT('authorityPolice'));
+
+  const safety = sentences(ids, [
+    ['unsafe', 'unsafe'], ['safeKnows', 'safeKnows'], ['safeTonight', 'safeTonight'], ['safePlace', 'safePlace'], ['safeFine', 'safeFine'],
+  ]);
+
+  const what = [timeSentence(ids)];
+  what.push(...sentences(ids, [['forced', 'sForced'], ['hurt', 'hurt']]));
+  if (has('drugged') || has('drugYes')) what.push(noteT('hDrugged'));
+  what.push(...sentences(ids, [
+    ['peopleMany', 'peopleMany'],
+    ['whereStay', 'whereStay'], ['whereWork', 'whereWork'], ['whereTheirs', 'whereTheirs'],
+    ['whereVehicle', 'whereVehicle'], ['whereOutside', 'whereOutside'], ['whereOther', 'whereOther'],
+    ['whoStranger', 'whoStranger'], ['whoKnown', 'whoKnown'], ['whoLive', 'whoLive'], ['whoAuthority', 'whoAuthority'],
+    ['threatened', 'threatened'], ['heldDown', 'heldDown'], ['weapon', 'weapon'],
+  ]));
+  const kept = sentences(ids, [['keptClothes', 'kClothes'], ['keptMessages', 'kMessages']]);
+  if (kept.length) what.push(noteT('kept', { list: joinList(kept) }));
+  what.push(...sentences(ids, [['keptWitness', 'keptWitness']]));
+
+  const prefs = sentences(ids, [['prefWomanOfficer', 'prefWomanOfficer'], ['prefCompanion', 'prefCompanion']]);
+  prefs.push(languageSentence(ids), noteT('helperClosing'));
+
+  return [
+    { kind: 'title', text: noteT('helperTitle') },
+    { kind: 'lead', text: noteT('intro') },
+    has('under18') ? { kind: 'lead', text: noteT('under18') } : null,
+    sectionBlock('secWant', want),
+    sectionBlock('secSafety', safety),
+    sectionBlock('secWhat', what),
+    sectionBlock('secPrefs', prefs),
+    { kind: 'footer', text: noteT('footer') },
+  ].filter(Boolean);
+}
+
+function renderNoteBlock(block) {
+  if (block.kind === 'title') return el('h3', { className: 'note-title', text: block.text });
+  if (block.kind === 'lead') return el('p', { className: 'note-lead', text: block.text });
+  if (block.kind === 'footer') return el('p', { className: 'note-footer', text: block.text });
+
+  const wrap = el('div', { className: block.kind === 'urgent' ? 'note-section note-urgent' : 'note-section' });
+  wrap.append(el('p', { className: 'note-heading', text: block.title }));
+  if (block.kind === 'words') {
+    wrap.append(el('p', { className: 'note-words', text: block.text }));
+  } else {
+    const list = el('ul', { className: 'note-lines' });
+    block.items.forEach((text) => list.append(el('li', { text })));
+    wrap.append(list);
+  }
+  return wrap;
+}
+
+function renderNote() {
+  const ids = evaluateNoteForm();
+  const { notes } = readAnswers();
+  const blocks = state.noteFor === 'helper' ? buildHelperNote(ids) : buildDoctorNote(ids, notes);
+
+  const sheet = $('#note-sheet');
+  sheet.lang = state.noteLang;
+  sheet.replaceChildren(...blocks.map(renderNoteBlock));
+
+  $('#note-tab-doctor').setAttribute('aria-pressed', String(state.noteFor === 'doctor'));
+  $('#note-tab-helper').setAttribute('aria-pressed', String(state.noteFor === 'helper'));
+  $('#note-lang').textContent = t(state.noteLang === 'en' ? 'note.toHindi' : 'note.toEnglish');
+  $('#note-under18').hidden = !ids.has('under18');
+
+  // Advice that her new answers call for, if the advice screen did not already show it.
+  const shown = new Set(buildAdvice(readAnswers()));
+  const extra = [];
+  if (['choked', 'headHit', 'fainted'].some((id) => ids.has(id)) && !shown.has('emergency')) extra.push('emergency');
+  if (ids.has('whoAuthority')) extra.push('authority');
+  if (['safeKnows', 'safeTonight', 'safePlace'].some((id) => ids.has(id)) && !shown.has('unsafe')) extra.push('unsafe');
+  if (ids.has('drugYes') && !shown.has('drugged')) extra.push('drugged');
+
+  const list = $('#note-also-list');
+  list.replaceChildren();
+  extra.forEach((id) => {
+    const card = adviceText(id);
+    if (card) list.append(adviceCard(card));
+  });
+  $('#note-also').hidden = list.children.length === 0;
+}
+
+function showNoteFor(who) {
+  state.noteFor = who;
+  renderNote();
+}
+
+async function switchNoteLanguage() {
+  const next = state.noteLang === 'en' ? 'hi' : 'en';
+  try {
+    await loadContent(next);
+    state.noteLang = next;
+    renderNote();
+  } catch {
+    // keep the current language if the other file fails to load
+  }
+}
+
+function resetNotes() {
+  $('#note-form').reset();
+  state.noteFor = 'doctor';
+  state.noteLang = 'en';
+}
+
+// Clears the extra answers and returns to the advice screen.
+function deleteNoteAnswers() {
+  resetNotes();
+  const start = state.previous.lastIndexOf('noteq');
+  if (start >= 0) state.previous = state.previous.slice(0, start);
+  if (state.previous[state.previous.length - 1] === 'advice') state.previous.pop();
+  show('advice', { remember: false });
 }
 
 // ---------- Area (pincode or GPS) ----------
@@ -708,6 +1015,7 @@ function setHelper(on) {
 function restart() {
   $('#check-form').reset(); // clears every answer and what she typed
   clearNotes();
+  resetNotes();
   state.service = null;
   state.origin = null;
   state.live = null;
@@ -730,6 +1038,11 @@ const actions = {
   'go-rights': () => show('rights'),
   'go-checkup': () => chooseService('checkup'),
   'clear-notes': clearNotes,
+  'go-noteq': () => show('noteq'),
+  'note-doctor': () => showNoteFor('doctor'),
+  'note-helper': () => showNoteFor('helper'),
+  'note-lang': switchNoteLanguage,
+  'note-delete': deleteNoteAnswers,
   gps: handleGps,
   'live-search': liveSearch,
   install: installApp,
@@ -750,6 +1063,8 @@ async function init() {
   });
   $('#pin-form').addEventListener('submit', handlePincode);
   $('#check-form').addEventListener('submit', handleCheckSubmit);
+  $('#note-form').addEventListener('submit', handleNoteSubmit);
+  $('#note-form').addEventListener('change', evaluateNoteForm); // show follow-up questions as she ticks
   setupInstall();
 
   try {

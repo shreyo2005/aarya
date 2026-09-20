@@ -82,6 +82,12 @@
 
       <ol id="advice-list" class="advice"></ol>
 
+      <div class="note-cta">
+        <h3 data-t="note.ctaTitle">Hard to explain what happened?</h3>
+        <p data-t="note.ctaBody">Answer a few more questions and we will turn them into two short notes.</p>
+        <button type="button" class="button button--primary" data-action="go-noteq" data-t="note.button">Make a note to show someone</button>
+      </div>
+
       <div id="notes-box" class="notes-box" hidden>
         <h3 data-t="advice.notesTitle">Show this to the doctor</h3>
         <p class="hint" data-t="advice.notesHint">This is what you wrote. It is not saved.</p>
@@ -93,6 +99,51 @@
         <button type="button" class="button" data-action="go-rights" data-t="home.rights">Know your rights</button>
       </div>
       <button type="button" class="link-button" data-action="back" data-t="advice.edit">Change my answers</button>
+
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="noteq" hidden>
+      <h2 tabindex="-1" data-t="noteq.title">Make a note to show someone</h2>
+      <p class="lede" data-t="noteq.sub">About 2 minutes. Skip anything you don't want to answer.</p>
+
+      <form id="note-form" novalidate>
+        <div id="note-groups"></div>
+        <button type="submit" class="button button--primary" data-t="noteq.submit">Make my notes</button>
+      </form>
+
+      <nav class="screen-nav" aria-label="Navigation">
+        <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
+        <button type="button" class="link-button" data-action="restart" data-t="nav.home">Start again</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="note" hidden>
+      <h2 tabindex="-1" data-t="note.title">Your notes</h2>
+      <p class="lede" data-t="note.sub">Choose who you are showing. Only that note is on the screen.</p>
+
+      <p id="note-under18" class="warning" data-t="note.under18" hidden></p>
+
+      <div class="note-switch">
+        <button type="button" class="button" id="note-tab-doctor" data-action="note-doctor" aria-pressed="true" data-t="note.forDoctor">For the doctor</button>
+        <button type="button" class="button" id="note-tab-helper" data-action="note-helper" aria-pressed="false" data-t="note.forHelper">For police or a support worker</button>
+      </div>
+      <button type="button" class="link-button" id="note-lang" data-action="note-lang">Show this note in Hindi</button>
+
+      <article id="note-sheet" class="note-sheet" lang="en"></article>
+
+      <div id="note-also" hidden>
+        <h3 data-t="note.alsoTitle">Also important</h3>
+        <ol id="note-also-list" class="advice"></ol>
+      </div>
+
+      <div class="note-actions">
+        <button type="button" class="link-button" data-action="back" data-t="note.edit">Change my answers</button>
+        <button type="button" class="link-button" data-action="note-delete" data-t="note.delete">Delete my answers</button>
+      </div>
 
       <nav class="screen-nav" aria-label="Navigation">
         <button type="button" class="link-button" data-action="back" data-t="nav.back">Back</button>
@@ -172,7 +223,7 @@
     </div>
   </footer>
 
-    <div id="install-banner" class="install-banner" role="dialog" aria-labelledby="install-title" hidden>
+  <div id="install-banner" class="install-banner" role="dialog" aria-labelledby="install-title" hidden>
     <div class="install-banner-inner">
       <img src="icon-192.png" alt="" width="48" height="48" class="install-icon">
       <div class="install-text">
@@ -185,7 +236,6 @@
       </div>
     </div>
   </div>
-  
 
   <noscript><p class="noscript">This site needs JavaScript. If you are in danger, call 112.</p></noscript>
 </body>
